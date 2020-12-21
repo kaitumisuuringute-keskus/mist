@@ -6,13 +6,11 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.{CreateContainerCmd, InspectContainerResponse}
 import com.github.dockerjava.api.model.{ContainerNetwork, Link}
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder}
-
 import io.hydrosphere.mist.core.CommonData.WorkerInitInfo
 import io.hydrosphere.mist.master._
 import io.hydrosphere.mist.master.execution.workers.StopAction
 import io.hydrosphere.mist.utils.Logger
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util._
 
@@ -51,20 +49,11 @@ class DockerStarter(
         val ids = networks.keys.mkString(",")
         logger.warn(s"Detected several networks for $id : $ids")
       }
-      logger.info(s"networks is ${networks}")
-      logger.info(s"networks.head is ${networks.head}")
       networks.head match {
         case ("bridge", network) => setupBridge(master.getName, network, cmd)
         case ("host", network) => cmd.withNetworkMode("host")
         case (unknown, network) => setup(unknown, network, cmd)
       }
-    }
-
-    logger.info(s"inspecting worker $id, printing containers")
-    val containers = dockerClient.listContainersCmd().exec();
-    val it = containers.iterator
-    while(it.hasNext() ) {
-      logger.info(it.next().getId())
     }
 
     for {

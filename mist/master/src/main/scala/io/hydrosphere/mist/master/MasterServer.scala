@@ -124,7 +124,6 @@ object MasterServer extends Logger {
 
     val security = bootstrapSecurity(config)
 
-
     def runFunctionInfoProvider(): Future[ActorRef] = {
       val runner = FunctionInfoProviderRunner.create(
         config.jobInfoProviderConfig,
