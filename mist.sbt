@@ -269,7 +269,7 @@ lazy val root = project.in(file("."))
     }
   ).settings(
     imageNames in docker := {
-      Seq(ImageName(s"braffolk/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2-newdocker"))
+      Seq(ImageName(s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2"))
     },
     dockerfile in docker := {
       val localSpark = sparkLocal.value
