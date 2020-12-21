@@ -6,6 +6,14 @@
 
 [![Join the chat at https://gitter.im/Hydrospheredata/mist](https://badges.gitter.im/Hydrospheredata/mist.svg)](https://gitter.im/Hydrospheredata/mist?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Fork
+This fork is mainly created to support Spark 3.0. For other changes, it has:
+
+- Artifact sizes can be up to 1GB
+- Is built on Hadoop 3.2, as earlier versions had issues with AWS S3
+- Is built having Fargate and AWS ECS in mind
+
+## Mist
 [Hydrosphere](http://hydrosphere.io) Mist is a serverless proxy for Spark cluster.
 Mist provides a new functional programming framework and deployment model for Spark applications. 
 
