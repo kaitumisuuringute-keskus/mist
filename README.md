@@ -13,6 +13,8 @@ This fork is mainly created to support Spark 3.0. For other changes, it has:
 - Is built on Hadoop 3.2, as earlier versions had issues with AWS S3
 - Is built having Fargate and AWS ECS in mind
 
+build: `sbt -DscalaVersion=2.12.7 -DsparkVersion=3.0.1 docker`
+
 ## Mist
 [Hydrosphere](http://hydrosphere.io) Mist is a serverless proxy for Spark cluster.
 Mist provides a new functional programming framework and deployment model for Spark applications. 
