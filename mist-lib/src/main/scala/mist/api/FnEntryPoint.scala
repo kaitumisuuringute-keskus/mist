@@ -1,6 +1,6 @@
 package mist.api
 
-import mist.api.data.{JsData, JsMap, Json4sConversion}
+import _root_.mist.api.data.{JsData, JsMap, Json4sConversion}
 import org.apache.spark.SparkContext
 import org.slf4j.LoggerFactory
 

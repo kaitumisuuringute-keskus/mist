@@ -40,7 +40,7 @@ lazy val mistLib = project.in(file("mist-lib"))
   .settings(
     scalacOptions ++= commonScalacOptions,
     name := "mist-lib",
-    sourceGenerators in Compile += (sourceManaged in Compile).map(dir => Boilerplate.gen(dir)).taskValue,
+    Compile / sourceGenerators += (sourceManaged in Compile).map(dir => Boilerplate.gen(dir)).taskValue,
     unmanagedSourceDirectories in Compile += {
       val sparkV = sparkVersion.value
       val sparkSpecific =  if (sparkV == "3.0.1") "spark-3.0.1" else "spark"

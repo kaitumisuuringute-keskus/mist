@@ -1,9 +1,9 @@
 package mist.api.data
 
+
 import scala.util._
 
 trait Json4sConversion {
-
   /** For running mist jobs directly from spark-submit **/
   def parse(s: String): Try[JsData] = {
     import org.json4s._
