@@ -260,7 +260,6 @@ lazy val root = project.in(file("."))
       }
 
       val extraEnv = sparkEnvs ++ uiEnvs
-
       val home = runStage.value
 
       val args = Seq("bin/mist-master", "start", "--debug", "true")
