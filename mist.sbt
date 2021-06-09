@@ -287,6 +287,8 @@ lazy val root = project.in(file("."))
 
         workDir(mistHome)
 
+        run("ls", "-la")
+        run("ls", "-la", "/bin")
         env("SPARK_VERSION", sparkVersion.value)
         env("IMAGE_PATH", imagePath.value)
         env("SPARK_HOME", "/usr/share/spark")
@@ -306,6 +308,9 @@ lazy val root = project.in(file("."))
         run("chmod", "+x", "/docker-entrypoint.sh")
         run("chmod", "777", "mist-worker.jar")
         run("chmod", "777", "mist-master.jar")
+        run("ls", "-la")
+        run("ls", "-la", "/bin")
+        run("ls", "-la", "bin")
       }
     })
   .configs(IntegrationTest)
