@@ -303,7 +303,7 @@ lazy val root = project.in(file("."))
         copy(distr, mistHome)
 
         copy(file("docker-entrypoint.sh"), "/")
-        run("chmod", "+x", "/docker-entrypoint.sh")
+        run("chmod", "777", "/docker-entrypoint.sh")
       }
     })
   .configs(IntegrationTest)
