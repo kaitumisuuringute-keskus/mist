@@ -30,7 +30,8 @@ lazy val commonSettings = Seq(
   crossScalaVersions := Seq("2.11.12", "2.12.7"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   parallelExecution in Test := false,
-  version := "1.1.3"
+  version := "1.1.3",
+  imageName := sys.props.getOrElse("REPO_NAME", kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2")
 )
 
 lazy val mistLib = project.in(file("mist-lib"))
@@ -269,7 +270,7 @@ lazy val root = project.in(file("."))
     }
   ).settings(
     imageNames in docker := {
-      Seq(ImageName(s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2"))
+      Seq(ImageName(s"${imageName.value}"))
     },
     dockerfile in docker := {
       val localSpark = sparkLocal.value
