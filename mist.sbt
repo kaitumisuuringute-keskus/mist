@@ -293,7 +293,6 @@ lazy val root = project.in(file("."))
         env("MIST_HOME", mistHome)
         env("DOCKER_HOST", "unix:///var/run/docker.sock")
 
-        run("chmod", "777", "/docker-entrypoint.sh")
         entryPoint("/docker-entrypoint.sh")
 
         run("apk", "update")
@@ -304,7 +303,8 @@ lazy val root = project.in(file("."))
         copy(distr, mistHome)
 
         copy(file("docker-entrypoint.sh"), "/")
-        run("chmod", "777", "/docker-entrypoint.sh")
+        run("ls", "-la", "/docker-entrypoint.sh")
+        run("chmod", "+x", "/docker-entrypoint.sh")
       }
     })
   .configs(IntegrationTest)
