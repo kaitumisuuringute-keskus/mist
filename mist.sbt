@@ -26,12 +26,12 @@ lazy val commonSettings = Seq(
 
   sparkVersion := sys.props.getOrElse("sparkVersion", "2.4.0"),
   scalaVersion :=  sys.props.getOrElse("scalaVersion", "2.11.12"),
+  imageName := sys.props.getOrElse("REPO_NAME", "kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2"),
   scalaPostfix := { if (scalaBinaryVersion.value == "2.12") "-scala-2.12" else "" },
   crossScalaVersions := Seq("2.11.12", "2.12.7"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   parallelExecution in Test := false,
-  version := "1.1.3",
-  imageName := sys.props.getOrElse("REPO_NAME", kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2")
+  version := "1.1.3"
 )
 
 lazy val mistLib = project.in(file("mist-lib"))
