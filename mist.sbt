@@ -14,6 +14,7 @@ resolvers ++= Seq(
   "maxaf-releases" at s"http://repo.bumnetworks.com/releases/"
 )
 
+lazy val imagePath: SettingKey[String] = settingKey[String]("Image path")
 lazy val sparkVersion: SettingKey[String] = settingKey[String]("Spark version")
 lazy val scalaPostfix: SettingKey[String] = settingKey[String]("Scala version postfix")
 lazy val sparkLocal: TaskKey[File] = taskKey[File]("Download spark distr")
@@ -26,11 +27,14 @@ lazy val commonSettings = Seq(
 
   sparkVersion := sys.props.getOrElse("sparkVersion", "2.4.0"),
   scalaVersion :=  sys.props.getOrElse("scalaVersion", "2.11.12"),
+  version := "1.1.3",
   scalaPostfix := { if (scalaBinaryVersion.value == "2.12") "-scala-2.12" else "" },
   crossScalaVersions := Seq("2.11.12", "2.12.7"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   parallelExecution in Test := false,
-  version := "1.1.3"
+  imagePath := sys.props.getOrElse(
+    "imagePath",
+    s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2")
 )
 
 lazy val mistLib = project.in(file("mist-lib"))
@@ -110,7 +114,7 @@ lazy val master = project.in(file("mist/master"))
       "org.glassfish.jersey.inject" % "jersey-hk2" % "2.30"
     )
   ).settings(
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion),
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion, imagePath),
     buildInfoPackage := "io.hydrosphere.mist"
   )
 
@@ -256,6 +260,7 @@ lazy val root = project.in(file("."))
       }
 
       val extraEnv = sparkEnvs ++ uiEnvs
+
       val home = runStage.value
 
       val args = Seq("bin/mist-master", "start", "--debug", "true")
@@ -269,7 +274,7 @@ lazy val root = project.in(file("."))
     }
   ).settings(
     imageNames in docker := {
-      Seq(ImageName(s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2"))
+      Seq(ImageName(imagePath.value))
     },
     dockerfile in docker := {
       val localSpark = sparkLocal.value
@@ -284,6 +289,7 @@ lazy val root = project.in(file("."))
         workDir(mistHome)
 
         env("SPARK_VERSION", sparkVersion.value)
+        env("IMAGE_PATH", imagePath.value)
         env("SPARK_HOME", "/usr/share/spark")
         env("MIST_HOME", mistHome)
         env("DOCKER_HOST", "unix:///var/run/docker.sock")
