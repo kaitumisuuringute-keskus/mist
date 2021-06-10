@@ -7,4 +7,5 @@ MASTER_ID=$(cat /proc/1/cgroup | grep "/docker/" | head -n 1 | awk -F "/" '{prin
 export MIST_OPTS="$MIST_OPTS -Dmist.workers.docker.auto-master-network.container-id=$MASTER_ID"
 ls -la ./bin/
 ls -la
+chmod 777 ./bin/mist-master
 exec ./bin/mist-master start --debug true $@
