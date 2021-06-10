@@ -8,4 +8,5 @@ export MIST_OPTS="$MIST_OPTS -Dmist.workers.docker.auto-master-network.container
 ls -la ./bin/
 ls -la
 chmod 777 ./bin/mist-master
+chmod -R 777 /usr/share
 exec ./bin/mist-master start --debug true $@
