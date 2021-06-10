@@ -14,8 +14,8 @@ resolvers ++= Seq(
   "maxaf-releases" at s"http://repo.bumnetworks.com/releases/"
 )
 
-lazy val imagePath: SettingKey[String] = settingKey[String]("Image path")
-lazy val imageName: SettingKey[String] = settingKey[String]("Image name")
+lazy val imageRepoPath: SettingKey[String] = settingKey[String]("Image path")
+lazy val imageRepoName: SettingKey[String] = settingKey[String]("Image repo name")
 lazy val sparkVersion: SettingKey[String] = settingKey[String]("Spark version")
 lazy val scalaPostfix: SettingKey[String] = settingKey[String]("Scala version postfix")
 lazy val sparkLocal: TaskKey[File] = taskKey[File]("Download spark distr")
@@ -27,14 +27,19 @@ lazy val commonSettings = Seq(
   organization := "io.hydrosphere",
 
   sparkVersion := sys.props.getOrElse("sparkVersion", "2.4.0"),
-  scalaVersion :=  sys.props.getOrElse("scalaVersion", "2.11.12"),
+  scalaVersion := sys.props.getOrElse("scalaVersion", "2.11.12"),
   version := "1.1.3",
-  scalaPostfix := { if (scalaBinaryVersion.value == "2.12") "-scala-2.12" else "" },
+  scalaPostfix := {
+    if (scalaBinaryVersion.value == "2.12") "-scala-2.12" else ""
+  },
   crossScalaVersions := Seq("2.11.12", "2.12.7"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   parallelExecution in Test := false,
   imagePath := sys.props.getOrElse(
     "imagePath",
+    s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2"),
+  imageRepoName := sys.props.getOrElse(
+    "imageRepoName",
     s"kaitumisuuringutekeskus/mist:${version.value}-${sparkVersion.value}${scalaPostfix.value}-hadoop3.2")
 )
 
@@ -48,7 +53,7 @@ lazy val mistLib = project.in(file("mist-lib"))
     Compile / sourceGenerators += (sourceManaged in Compile).map(dir => Boilerplate.gen(dir)).taskValue,
     unmanagedSourceDirectories in Compile += {
       val sparkV = sparkVersion.value
-      val sparkSpecific =  if (sparkV == "3.0.1") "spark-3.0.1" else "spark"
+      val sparkSpecific = if (sparkV == "3.0.1") "spark-3.0.1" else "spark"
       baseDirectory.value / "src" / "main" / sparkSpecific
     },
     libraryDependencies ++= Library.spark(sparkVersion.value).map(_ % "provided"),
@@ -115,9 +120,9 @@ lazy val master = project.in(file("mist/master"))
       "org.glassfish.jersey.inject" % "jersey-hk2" % "2.30"
     )
   ).settings(
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion, imagePath),
-    buildInfoPackage := "io.hydrosphere.mist"
-  )
+  buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion, imagePath),
+  buildInfoPackage := "io.hydrosphere.mist"
+)
 
 lazy val worker = project.in(file("mist/worker"))
   .dependsOn(core % "compile->compile;test->test")
@@ -147,7 +152,7 @@ lazy val worker = project.in(file("mist/worker"))
     ),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     assemblyShadeRules in assembly := Seq(
-       ShadeRule.rename("scopt.**" -> "shaded.@0").inAll
+      ShadeRule.rename("scopt.**" -> "shaded.@0").inAll
     )
   )
 
@@ -201,14 +206,15 @@ lazy val root = project.in(file("."))
         ("less-verbose-example", "LessVerboseExample$"),
         ("pi-example", "PiExample$"),
         ("jpi-example", "JavaPiExample")
-      ).map({case (name, clazz) => {
+      ).map({ case (name, clazz) => {
         Write(
           s"data/functions/$name.conf",
           s"""path = mist-examples.jar
              |className = "$clazz"
              |namespace = foo""".stripMargin
         )
-      }}) :+ CpFile(sbt.Keys.`package`.in(examples, Compile).value)
+      }
+      }) :+ CpFile(sbt.Keys.`package`.in(examples, Compile).value)
         .as("mist-examples.jar")
         .to("data/artifacts")
 
@@ -225,89 +231,91 @@ lazy val root = project.in(file("."))
              |namespace = foo""".stripMargin
         )
       }) :+ CpFile(PyProject.pyBdistEgg.in(examples).value)
-          .as("mist_pyexamples.egg")
-          .to("data/artifacts")
+        .as("mist_pyexamples.egg")
+        .to("data/artifacts")
 
       Seq(MkDir("data/artifacts"), MkDir("data/functions")) ++ mkJfunctions ++ mkPyfunctions
     }
   ).settings(
-    sparkLocal := {
-      val log = streams.value.log
-      val sparkV= sparkVersion.value
-      val scalaBin = scalaBinaryVersion.value
+  sparkLocal := {
+    val log = streams.value.log
+    val sparkV = sparkVersion.value
+    val scalaBin = scalaBinaryVersion.value
 
-      val local = file("spark_local")
-      if (!local.exists())
-        IO.createDirectory(local)
+    val local = file("spark_local")
+    if (!local.exists())
+      IO.createDirectory(local)
 
-      val sparkDir = local / SparkLocal.distrName(sparkV, scalaBin)
-      if (!sparkDir.exists()) {
-        log.info(s"Downloading spark $version to $sparkDir")
-        SparkLocal.downloadSpark(sparkV, scalaBin, local)
-      }
-      sparkDir
-    },
-
-    mistRun := {
-      val log = streams.value.log
-      val taskArgs = spaceDelimited("<arg>").parsed.grouped(2).toSeq
-        .flatMap(l => {if (l.size == 2) Some(l.head -> l.last) else None})
-        .toMap
-
-      val uiEnvs = taskArgs.get("--ui-dir").fold(Seq.empty[(String, String)])(p => Seq("MIST_UI_DIR" -> p))
-      val sparkEnvs = {
-        val spark = taskArgs.getOrElse("--spark", sparkLocal.value.getAbsolutePath)
-        Seq("SPARK_HOME" -> spark)
-      }
-
-      val extraEnv = sparkEnvs ++ uiEnvs
-      val home = runStage.value
-
-      val args = Seq("bin/mist-master", "start", "--debug", "true")
-
-      import scala.sys.process._
-
-      val ps = Process(args, Some(home), extraEnv: _*)
-      log.info(s"Running mist $ps with env $extraEnv")
-
-      ps.!<(StdOutLogger)
+    val sparkDir = local / SparkLocal.distrName(sparkV, scalaBin)
+    if (!sparkDir.exists()) {
+      log.info(s"Downloading spark $version to $sparkDir")
+      SparkLocal.downloadSpark(sparkV, scalaBin, local)
     }
-  ).settings(
-    imageNames in docker := {
-      Seq(ImageName(imageName.value))
-    },
-    dockerfile in docker := {
-      val localSpark = sparkLocal.value
-      val mistHome = "/usr/share/mist"
-      val distr = dockerStage.value
+    sparkDir
+  },
 
-      new Dockerfile {
-        from("anapsix/alpine-java:8")
+  mistRun := {
+    val log = streams.value.log
+    val taskArgs = spaceDelimited("<arg>").parsed.grouped(2).toSeq
+      .flatMap(l => {
+        if (l.size == 2) Some(l.head -> l.last) else None
+      })
+      .toMap
 
-        expose(2004)
+    val uiEnvs = taskArgs.get("--ui-dir").fold(Seq.empty[(String, String)])(p => Seq("MIST_UI_DIR" -> p))
+    val sparkEnvs = {
+      val spark = taskArgs.getOrElse("--spark", sparkLocal.value.getAbsolutePath)
+      Seq("SPARK_HOME" -> spark)
+    }
 
-        workDir(mistHome)
+    val extraEnv = sparkEnvs ++ uiEnvs
+    val home = runStage.value
 
-        env("SPARK_VERSION", sparkVersion.value)
-        env("IMAGE_PATH", imagePath.value)
-        env("IMAGE_NAME", imageName.value)
-        env("SPARK_HOME", "/usr/share/spark")
-        env("MIST_HOME", mistHome)
-        env("DOCKER_HOST", "unix:///var/run/docker.sock")
+    val args = Seq("bin/mist-master", "start", "--debug", "true")
 
-        entryPoint("sh", "/docker-entrypoint.sh")
+    import scala.sys.process._
 
-        run("apk", "update")
-        run("apk", "add", "python", "curl", "jq", "coreutils", "subversion-dev", "fts-dev")
+    val ps = Process(args, Some(home), extraEnv: _*)
+    log.info(s"Running mist $ps with env $extraEnv")
 
-        copy(localSpark, "/usr/share/spark")
+    ps.!<(StdOutLogger)
+  }
+).settings(
+  imageNames in docker := {
+    Seq(ImageName(imageRepoName.value))
+  },
+  dockerfile in docker := {
+    val localSpark = sparkLocal.value
+    val mistHome = "/usr/share/mist"
+    val distr = dockerStage.value
 
-        copy(distr, mistHome)
+    new Dockerfile {
+      from("anapsix/alpine-java:8")
 
-        copy(file("docker-entrypoint.sh"), "/")
-        run("chmod", "+x", "/docker-entrypoint.sh")
-      }
-    })
+      expose(2004)
+
+      workDir(mistHome)
+
+      env("SPARK_VERSION", sparkVersion.value)
+      env("IMAGE_PATH", imagePath.value)
+      env("IMAGE_NAME", imageRepoName.value)
+      env("SPARK_HOME", "/usr/share/spark")
+      env("MIST_HOME", mistHome)
+      env("DOCKER_HOST", "unix:///var/run/docker.sock")
+
+      entryPoint("sh", "/docker-entrypoint.sh")
+
+      run("apk", "update")
+      run("apk", "add", "python", "curl", "jq", "coreutils", "subversion-dev", "fts-dev")
+
+      copy(localSpark, "/usr/share/spark")
+
+      copy(distr, mistHome)
+
+      copy(file("docker-entrypoint.sh"), "/")
+      run("chmod", "+x", "/docker-entrypoint.sh")
+    }
+  })
   .configs(IntegrationTest)
   .settings(Defaults.itSettings: _*)
   .settings(
@@ -350,7 +358,7 @@ addCommandAlias("testAll", ";test;it:test")
 lazy val examples = project.in(file("examples/examples"))
   .dependsOn(mistLib)
   .settings(commonSettings: _*)
-  .settings(PyProject.settings:_*)
+  .settings(PyProject.settings: _*)
   .settings(
     name := "mist-examples",
     libraryDependencies ++= Library.spark(sparkVersion.value).map(_ % "provided"),
@@ -398,14 +406,16 @@ lazy val docs = project.in(file("docs"))
       })
     },
     micrositeAnalyticsToken := "UA-76326820-1"
-)
+  )
 
 
 lazy val commonAssemblySettings = Seq(
   assemblyMergeStrategy in assembly := {
     case m if m.toLowerCase.endsWith("manifest.mf") => MergeStrategy.discard
-    case PathList("META-INF", xs @ _*) =>
-      (xs map {_.toLowerCase}) match {
+    case PathList("META-INF", xs@_*) =>
+      (xs map {
+        _.toLowerCase
+      }) match {
         case "services" :: xs =>
           MergeStrategy.filterDistinctLines
         case _ => MergeStrategy.discard

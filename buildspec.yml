@@ -13,7 +13,7 @@ phases:
       - echo Building the Docker image...
       - REPO_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME
       - docker pull $REPO_URI:latest || true
-      - sbt -DscalaVersion=2.12.7 -DsparkVersion=3.0.1 -DimageName=$REPO_NAME -DimagePath=$REPO_URI:latest docker
+      - sbt -DscalaVersion=2.12.7 -DsparkVersion=3.0.1 -DimageRepoName=$REPO_NAME -DimagePath=$REPO_URI:latest docker
       - echo sbt build succeeded
       - docker tag $REPO_NAME $REPO_URI:latest
       - docker tag $REPO_NAME $REPO_URI:$IMAGE_TAG
