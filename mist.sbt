@@ -15,7 +15,7 @@ resolvers ++= Seq(
 )
 
 lazy val imagePath: SettingKey[String] = settingKey[String]("Image path")
-lazy val imageRepoName: SettingKey[String] = settingKey[String]("Image path")
+lazy val imageRepoName: SettingKey[String] = settingKey[String]("Image repo name")
 lazy val sparkVersion: SettingKey[String] = settingKey[String]("Spark version")
 lazy val scalaPostfix: SettingKey[String] = settingKey[String]("Scala version postfix")
 lazy val sparkLocal: TaskKey[File] = taskKey[File]("Download spark distr")
@@ -118,7 +118,7 @@ lazy val master = project.in(file("mist/master"))
       "org.glassfish.jersey.inject" % "jersey-hk2" % "2.30"
     )
   ).settings(
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion, imagePath, imageRepoName),
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sparkVersion, imageRepoName, imagePath),
     buildInfoPackage := "io.hydrosphere.mist"
   )
 
@@ -277,7 +277,7 @@ lazy val root = project.in(file("."))
     }
   ).settings(
     imageNames in docker := {
-      Seq(ImageName(imageRepoName.value))
+      Seq(ImageName(imagePath.value))
     },
     dockerfile in docker := {
       val localSpark = sparkLocal.value
