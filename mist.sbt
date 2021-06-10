@@ -15,6 +15,7 @@ resolvers ++= Seq(
 )
 
 lazy val imagePath: SettingKey[String] = settingKey[String]("Image path")
+lazy val imageName: SettingKey[String] = settingKey[String]("Image name")
 lazy val sparkVersion: SettingKey[String] = settingKey[String]("Spark version")
 lazy val scalaPostfix: SettingKey[String] = settingKey[String]("Scala version postfix")
 lazy val sparkLocal: TaskKey[File] = taskKey[File]("Download spark distr")
@@ -273,7 +274,7 @@ lazy val root = project.in(file("."))
     }
   ).settings(
     imageNames in docker := {
-      Seq(ImageName(imagePath.value))
+      Seq(ImageName(imageName.value))
     },
     dockerfile in docker := {
       val localSpark = sparkLocal.value
@@ -287,10 +288,9 @@ lazy val root = project.in(file("."))
 
         workDir(mistHome)
 
-        run("ls", "-la")
-        run("ls", "-la", "/bin")
         env("SPARK_VERSION", sparkVersion.value)
         env("IMAGE_PATH", imagePath.value)
+        env("IMAGE_NAME", imageName.value)
         env("SPARK_HOME", "/usr/share/spark")
         env("MIST_HOME", mistHome)
         env("DOCKER_HOST", "unix:///var/run/docker.sock")
@@ -306,11 +306,6 @@ lazy val root = project.in(file("."))
 
         copy(file("docker-entrypoint.sh"), "/")
         run("chmod", "+x", "/docker-entrypoint.sh")
-        run("chmod", "777", "mist-worker.jar")
-        run("chmod", "777", "mist-master.jar")
-        run("ls", "-la")
-        run("ls", "-la", "/bin")
-        run("ls", "-la", "bin")
       }
     })
   .configs(IntegrationTest)
