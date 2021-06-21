@@ -15,9 +15,28 @@ This fork is mainly created to support Spark 3.0. For other changes, it has:
 
 build: `sbt -DscalaVersion=2.12.7 -DsparkVersion=3.0.1 docker`
 
+This fork includes a third variable in case the image built is for a private repo. It's called imagePath and can be used as follows:
+`sbt -DscalaVersion=2.12.7 -DsparkVersion=3.0.1 -DimagePath=REPO_NAME_HERE docker`
+
 Docker images:
 
 - kaitumisuuringutekeskus/mist:1.1.3-3.0.1-scala-2.12-hadoop3.2
+
+### Running it locally
+
+
+First pull the mist image using
+`docker pull kaitumisuuringutekeskus/mist:1.1.3-3.0.1-scala-2.12-hadoop3.2`
+
+Then run it using docker:
+`docker run -p 2004:2004 -p 4040:4040 -v /var/run/docker.sock:/var/run/docker.sock kaitumisuuringutekeskus/mist:1.1.3-3.0.1-scala-2.12-hadoop3.2`
+
+If the docker instance needs access to localhost urls, use:
+`docker run -p 2004:2004 -p 4040:4040 --add-host=host.docker.internal:host-gateway -v /var/run/docker.sock:/var/run/docker.sock kaitumisuuringutekeskus/mist:1.1.3-3.0.1-scala-2.12-hadoop3.2`
+
+Localhost inside the container will be "host.docker.internal"
+
+Now you can connect to the instance on the ip and port `localhost:2004`
 
 ## Mist
 [Hydrosphere](http://hydrosphere.io) Mist is a serverless proxy for Spark cluster.
