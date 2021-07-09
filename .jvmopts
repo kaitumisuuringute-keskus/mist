@@ -1,4 +1,4 @@
--Xss4m
+-Xss16m
 -Xms512m
 -Xmx4G
 -XX:ReservedCodeCacheSize=1024m
