@@ -93,7 +93,7 @@ object DockerCleaner {
 
     val client = {
       val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-        .withDockerHost("unix:///var/run/docker.sock")
+        .withDockerHost(dockerHost)
         .build()
       DockerClientBuilder.getInstance(config).build()
     }
