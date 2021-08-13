@@ -19,6 +19,7 @@ import io.hydrosphere.mist.master.Messages.StatusMessages.SystemEvent
 import io.hydrosphere.mist.master.artifact.ArtifactRepository
 import io.hydrosphere.mist.master.data.{ContextsStorage, FunctionConfigStorage}
 import io.hydrosphere.mist.master.execution.workers.starter.WorkerStarter
+import io.hydrosphere.mist.master.execution.workers.cleaner.DockerCleaner
 import io.hydrosphere.mist.master.execution.{ExecutionService, SpawnSettings}
 import io.hydrosphere.mist.master.interfaces.async._
 import io.hydrosphere.mist.master.interfaces.http._
@@ -105,6 +106,9 @@ object MasterServer extends Logger {
     def runExecutionService(repository: JobRepository, logService: LogService): ExecutionService = {
       val logsDir = Paths.get(config.logs.dumpDirectory)
       val workerRunner = WorkerStarter.create(config.workers, logsDir)
+      // cleans unused containers every n minutes.
+      val dockerCleaner = DockerCleaner.create(config.workers.dockerConfig)
+
       val spawnSettings = SpawnSettings(
         runnerCmd = workerRunner,
         timeout = config.workers.runnerInitTimeout,
