@@ -1,0 +1,3 @@
+version: 0.0
+Hooks:
+  - BeforeInstall: arn:aws:lambda:eu-central-1:535116412216:function:kotlin-lambda-dev-ecsDeployer

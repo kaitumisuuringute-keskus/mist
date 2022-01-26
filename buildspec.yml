@@ -27,4 +27,6 @@ phases:
       - echo Writing image definitions...
       - printf '[{"name":"%s","imageUri":"%s"}]' "$TASK_NAME" "$REPO_URI:$IMAGE_TAG" | tee imagedefinitions.json
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - imagedefinitions.json
+    - appspec.yaml
