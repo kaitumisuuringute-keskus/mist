@@ -25,11 +25,11 @@ phases:
       - docker push $REPO_URI:latest
       - docker push $REPO_URI:$IMAGE_TAG
       - ./configure-access.sh arn:aws:iam::535116412216:role/codedeploy-mist dev
-      - aws ecs describe-task-definition --task-definition backend --profile dev | jq '.taskDefinition' | tee dev-taskdef.json
+      - aws ecs describe-task-definition --task-definition mist --profile dev | jq '.taskDefinition' | tee dev-taskdef.json
       - ./configure-access.sh arn:aws:iam::659908802543:role/codedeploy-mist staging
-      - aws ecs describe-task-definition --task-definition backend --profile staging | jq '.taskDefinition' | tee staging-taskdef.json
+      - aws ecs describe-task-definition --task-definition mist --profile staging | jq '.taskDefinition' | tee staging-taskdef.json
       - ./configure-access.sh arn:aws:iam::410422127778:role/codedeploy-mist production
-      - aws ecs describe-task-definition --task-definition backend --profile production | jq '.taskDefinition' | tee production-taskdef.json
+      - aws ecs describe-task-definition --task-definition mist --profile production | jq '.taskDefinition' | tee production-taskdef.json
       - echo Writing image definitions...
       - printf '[{"name":"%s","imageUri":"%s"}]' "$TASK_NAME" "$REPO_URI:$IMAGE_TAG" | tee imagedefinitions.json
 artifacts:
