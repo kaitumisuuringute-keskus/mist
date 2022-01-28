@@ -1,6 +1,6 @@
 version: 0.0
 Hooks:
-  - BeforeAllowTestTraffic:: arn:aws:lambda:eu-central-1:535116412216:function:kotlin-lambda-dev-sparkJobUpload
+  - BeforeAllowTraffic: arn:aws:lambda:eu-central-1:535116412216:function:kotlin-lambda-dev-sparkJobUpload
 Resources:
   - TargetService:
       Type: AWS::ECS::Service
