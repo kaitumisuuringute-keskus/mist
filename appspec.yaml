@@ -12,3 +12,4 @@ Resources:
         CapacityProviderStrategy:
           - Base: 1
             CapacityProvider: "mist-cap-provider"
+            Weight: 100
