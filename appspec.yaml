@@ -10,5 +10,5 @@ Resources:
           ContainerName: "mist"
           ContainerPort: 2004
         CapacityProviderStrategy:
-          - Base: 100
+          - Base: 1
             CapacityProvider: "mist-cap-provider"
