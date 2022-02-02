@@ -9,3 +9,6 @@ Resources:
         LoadBalancerInfo:
           ContainerName: "mist"
           ContainerPort: 2004
+        CapacityProviderStrategy:
+          - Base: 100
+            CapacityProvider: "mist-cap-provider"
