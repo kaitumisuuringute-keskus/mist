@@ -2,7 +2,7 @@ version: 0.2
 phases:
   install:
     commands:
-      - snap install yq
+      - pip install yq --upgrade
   pre_build:
     commands:
       - echo Logging into ECR
