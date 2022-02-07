@@ -1,5 +1,8 @@
 version: 0.2
 phases:
+  install:
+    commands:
+      - snap install yq
   pre_build:
     commands:
       - echo Logging into ECR
@@ -7,6 +10,9 @@ phases:
       - eval $(aws ecr get-login --region $AWS_REGION --no-include-email)
       - REPO_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - CONTAINER_NAME=mist
+      - CONTAINER_PORT=2004
+      - CAPACITY_PROVIDER_NAME="mist-cap-provider"
   build:
     commands:
       - echo Build started at `date`
@@ -24,11 +30,11 @@ phases:
       - REPO_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME
       - docker push $REPO_URI:latest
       - docker push $REPO_URI:$IMAGE_TAG
-      - ./configure-access.sh arn:aws:iam::535116412216:role/codedeploy-mist dev
+      - ./cicd/configure-access.sh arn:aws:iam::535116412216:role/codedeploy-mist dev
       - aws ecs describe-task-definition --task-definition mist --profile dev | jq '.taskDefinition' | tee dev-taskdef.json
-      - ./configure-access.sh arn:aws:iam::659908802543:role/codedeploy-mist staging
+      - ./cicd/configure-access.sh arn:aws:iam::659908802543:role/codedeploy-mist staging
       - aws ecs describe-task-definition --task-definition mist --profile staging | jq '.taskDefinition' | tee staging-taskdef.json
-      - ./configure-access.sh arn:aws:iam::410422127778:role/codedeploy-mist production
+      - ./cicd/configure-access.sh arn:aws:iam::410422127778:role/codedeploy-mist production
       - aws ecs describe-task-definition --task-definition mist --profile production | jq '.taskDefinition' | tee production-taskdef.json
       - echo Writing image definitions...
       - printf '[{"name":"%s","imageUri":"%s"}]' "$TASK_NAME" "$REPO_URI:$IMAGE_TAG" | tee imagedefinitions.json

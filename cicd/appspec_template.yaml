@@ -1,0 +1,15 @@
+version: 0.0
+Hooks:
+  - BeforeAllowTraffic: arn:aws:lambda:eu-central-1:535116412216:function:kotlin-lambda-dev-sparkJobUpload
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "mist"
+          ContainerPort: 2004
+        CapacityProviderStrategy:
+          - Base: 1
+            CapacityProvider: "mist-cap-provider"
+            Weight: 100
